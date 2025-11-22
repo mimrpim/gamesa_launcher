@@ -36,4 +36,4 @@ SOFTWARE.
 }
 Shortcut=D, launcher.exe, , "Gamesa launcher", "Gamesa Launcher", launcher.exe
 Shortcut=P, launcher.exe, Gamesa/Launcher, "Gamesa Launcher", "Gamesa Launcher", launcher.exe
-Shortcut=P, uninstall.exe, Gamesa/Launcher, "Uninstall Gamesa Launcher", "Uninstall Gamesa Launcher", uninstall.bat
+Shortcut=P, uninstall.bat, Gamesa/Launcher, "Uninstall Gamesa Launcher", "Uninstall Gamesa Launcher", uninstall.ico
