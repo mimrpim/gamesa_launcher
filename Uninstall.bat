@@ -1,7 +1,7 @@
 ::[Bat To Exe Converter]
 ::
-::YAwzoRdxOk+EWAnk
-::fBw5plQjdG8=
+::YAwzoRdxOk+EWAjk
+::fBw5plQjdCyDJGyX8VAjFBZdQRaSAE+1EbsQ5+n//NaSrEQTR/Y+dIOV07eBQA==
 ::YAwzuBVtJxjWCl3EqQJgSA==
 ::ZR4luwNxJguZRRnk
 ::Yhs/ulQjdF+5
@@ -26,14 +26,15 @@
 ::ZQ0/vhVqMQ3MEVWAtB9wSA==
 ::Zg8zqx1/OA3MEVWAtB9wSA==
 ::dhA7pRFwIByZRRnk
-::Zh4grVQjdCyDJGyX8VAjFDAGfDuyHzvoOpEZ++Pv4Pq7t0MUWvEreYPXlLGWJYA=
+::Zh4grVQjdCyDJGyX8VAjFBZdQRaSAE+/Fb4I5/jH2uSOrF4JVe4zNorD39Q=
 ::YB416Ek+ZW8=
 ::
 ::
 ::978f952a14a936cc963da21a135fa983
 @echo off
 del /f /q "C:\Users\%username%\Desktop\Gamesa Launcher.lnk"
-rmdir /q /s "C:\Users\%username%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Gamesa\Launcher"
+rmdir /q /s "%appdata%\Microsoft\Windows\Start Menu\Programs\Gamesa\"
+rmdir /S /Q "%appdata%\Godot\app_userdata\Gamesa"
 for %%I in ("%cd%") do set "currentdir=%%~nxI"
 cd ..
-rmdir /s /q "%currentdir%"
+cmd /C rmdir /s /q "%currentdir%\"
