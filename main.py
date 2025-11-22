@@ -544,14 +544,14 @@ class GameLauncher(tk.Tk):
                     break
             
             if not download_url:
-                self.log_message(f"❌ ERROR: No asset named '{DOWNLOADED_RAR_NAME}' was found on GitHub.", is_changelog=False, append=True)
+                self.log_message(f"❌ ERROR: No asset named '{DOWNLOADED_RAR_NAME}' was found.", is_changelog=False, append=True)
                 return None
 
             self.download_url = download_url
             return remote_data
             
         except requests.exceptions.RequestException as e:
-            self.log_message(f"Error connecting to GitHub API: {e}", is_changelog=False, append=True)
+            self.log_message(f"Error connecting to API: {e}", is_changelog=False, append=True)
             return None
 
     # --- KLIKACÍ AKCE ---
@@ -585,7 +585,7 @@ class GameLauncher(tk.Tk):
     def _run_installation(self):
         download_success = False
         
-        self.log_message(f"1/3 Downloading file '{DOWNLOADED_RAR_NAME}' from GitHub...", is_changelog=False, append=True)
+        self.log_message(f"1/3 Downloading file '{DOWNLOADED_RAR_NAME}'", is_changelog=False, append=True)
         # Using special header for downloading assets
         headers = {'Accept': 'application/octet-stream'}
         download_success = download_file(self.download_url, DOWNLOADED_RAR_NAME, headers)
