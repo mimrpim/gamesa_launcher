@@ -1,12 +1,11 @@
 ::[Bat To Exe Converter]
 ::
-::fBE1pAF6MU+EWHreyHcjLQlHcAmLMXmqOpEZ++Pv4Pq7tE8Oa/Y6a5vnzLadbuIS/iU=
 ::YAwzoRdxOk+EWAjk
 ::fBw5plQjdCyDJGyX8VAjFBZdQRaSAE+1EbsQ5+n//NaSrEQTR/Y+dIOV07eBQA==
 ::YAwzuBVtJxjWCl3EqQJgSA==
 ::ZR4luwNxJguZRRnk
 ::Yhs/ulQjdF+5
-::cxAkpRVqdFKZSTk=
+::cxAkpRVqdFKZSDk=
 ::cBs/ulQjdF+5
 ::ZR41oxFsdFKZSDk=
 ::eBoioBt6dFKZSDk=
@@ -27,24 +26,15 @@
 ::ZQ0/vhVqMQ3MEVWAtB9wSA==
 ::Zg8zqx1/OA3MEVWAtB9wSA==
 ::dhA7pRFwIByZRRnk
+::Zh4grVQjdCyDJGyX8VAjFBZdQRaSAE+/Fb4I5/jH2uSOrF4JVe4zNorD39Q=
 ::YB416Ek+ZW8=
 ::
 ::
 ::978f952a14a936cc963da21a135fa983
 @echo off
-title uninstaller
-call vbs.bat
-if %errorlevel% == 2 (
-rmdir /S /Q "%appdata%\Godot\app_userdata\Gamesa"
-)
-if %errorlevel% == 1 (
-exit /b 1
-)
 del /f /q "C:\Users\%username%\Desktop\Gamesa Launcher.lnk"
-rmdir /q /s "C:\Users\%username%\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Gamesa\Launcher"
+rmdir /q /s "%appdata%\Microsoft\Windows\Start Menu\Programs\Gamesa\"
+rmdir /S /Q "%appdata%\Godot\app_userdata\Gamesa"
 for %%I in ("%cd%") do set "currentdir=%%~nxI"
 cd ..
-echo %currentdir%
-pause
-start cmd /C rmdir /s /q "%currentdir%"
-exit
+cmd /C rmdir /s /q "%currentdir%\"
