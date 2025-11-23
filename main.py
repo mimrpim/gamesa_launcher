@@ -105,7 +105,7 @@ class GameLauncher(tk.Tk):
     """Hlavní třída aplikace s grafickým rozhraním v Dark Mode."""
     def __init__(self):
         super().__init__()
-        self.title("Gamesa Aktualizace & Launcher (mimrpim)")
+        self.title("Gamesa Launcher")
         
         # Pevné rozměry okna
         self.window_width = 854
@@ -119,12 +119,13 @@ class GameLauncher(tk.Tk):
         # Zakázání změny velikosti a fullscreenu (okno je FIXED)
         self.resizable(False, False) 
         self.config(bg=BG_DARK)
+        self.iconbitmap("icon.ico")
         
         # Stavy
         self.local_version = DEFAULT_VERSION
         self.remote_version = None
         self.download_url = None
-        self.remote_changelog = "Probíhá kontrola aktualizací..."
+        self.remote_changelog = "Checking for updates..."
         self.is_installed = os.path.exists(EXPANDED_GAME_EXE_PATH)
         self.is_up_to_date = False
         self.is_busy = False 
@@ -222,7 +223,7 @@ class GameLauncher(tk.Tk):
                                            style='LogSwitcher.TButton')
         self.changelog_button.grid(row=0, column=0, sticky="ew", padx=(0, 5))
         
-        self.gamelog_button = ttk.Button(log_switcher_frame, text="Herní Logy", 
+        self.gamelog_button = ttk.Button(log_switcher_frame, text="Game Logs", 
                                          command=lambda: self.switch_log_mode('gamelog'), 
                                          style='LogSwitcher.TButton')
         self.gamelog_button.grid(row=0, column=1, sticky="ew", padx=(5, 0))
@@ -236,7 +237,7 @@ class GameLauncher(tk.Tk):
         self.log_selector_frame.grid(row=2, column=0, sticky="ew") # Umístění
         self.log_selector_frame.grid_columnconfigure(1, weight=1) # Combobox je flexibilní
 
-        log_select_label = ttk.Label(self.log_selector_frame, text="Vybraný soubor logu:", style='TLabel')
+        log_select_label = ttk.Label(self.log_selector_frame, text="Selected log:", style='TLabel')
         log_select_label.grid(row=0, column=0, sticky="w", padx=(0, 10))
         
         self.log_combobox = ttk.Combobox(self.log_selector_frame, state='readonly', font=('Consolas', 9))
@@ -281,7 +282,7 @@ class GameLauncher(tk.Tk):
         self.force_install_var = tk.BooleanVar()
         self.force_install_check = ttk.Checkbutton(
             left_controls_group_frame, 
-            text="Vynutit přeinstalaci", 
+            text="Force update", 
             variable=self.force_install_var, 
             command=self.update_button_state,
             style='TCheckbutton' 
@@ -289,12 +290,12 @@ class GameLauncher(tk.Tk):
         self.force_install_check.grid(row=0, column=0, pady=5, sticky="w")
         
         self.version_label = ttk.Label(left_controls_group_frame, 
-                                        text=f"Lokální: {self.local_version}", 
+                                        text=f"Installed: {self.local_version}", 
                                         style='TLabel')
         self.version_label.grid(row=1, column=0, sticky="w", pady=(0, 5))
         
         # --- Centrální Tlačítko (Install / Play) ---
-        self.main_button = ttk.Button(controls_frame, text="Kontrola...", 
+        self.main_button = ttk.Button(controls_frame, text="Loading...", 
                                       command=self.on_main_button_click, 
                                       state=tk.DISABLED,
                                       style='TButton')
@@ -348,16 +349,16 @@ class GameLauncher(tk.Tk):
             # Získáme jméno souboru z Comboboxu (pokud je voláno z Comboboxu)
             file_name = self.log_combobox.get()
             
-        if not file_name or file_name == "Žádné logy nenalezeny":
-            self.log_message("Žádné logy k zobrazení.", is_changelog=False, append=False)
+        if not file_name or file_name == "No logs found":
+            self.log_message("No logs to display.", is_changelog=False, append=False)
             return
             
         full_path = os.path.join(EXPANDED_LOGS_DIR, file_name)
         
         self.output_text.config(state=tk.NORMAL)
         self.output_text.delete(1.0, tk.END)
-        
-        self.output_text.insert(tk.END, f"Načítám log: {file_name}\n", "title")
+
+        self.output_text.insert(tk.END, f"Loading log: {file_name}\n", "title")
         self.output_text.insert(tk.END, "=" * 30 + "\n\n", 'default')
         
         try:
@@ -365,7 +366,7 @@ class GameLauncher(tk.Tk):
                 content = f.read()
                 self.output_text.insert(tk.END, content, 'default')
         except Exception as e:
-            self.output_text.insert(tk.END, f"❌ CHYBA ČTENÍ LOGU: {e}\n", 'default')
+            self.output_text.insert(tk.END, f"❌ ERROR READING LOG: {e}\n", 'default')
             
         self.output_text.config(state=tk.DISABLED)
         self.output_text.see(tk.END)
@@ -374,7 +375,7 @@ class GameLauncher(tk.Tk):
     def switch_log_mode(self, mode):
         """Přepne zobrazení logů mezi changelogem a herními logy/instalacemi."""
         if self.is_busy:
-            self.log_message("\nProbíhá operace, nelze přepínat zobrazení.", is_changelog=False, append=True)
+            self.log_message("\nAn operation is in progress; cannot switch views.", is_changelog=False, append=True)
             return
 
         self.log_mode = mode
@@ -384,16 +385,16 @@ class GameLauncher(tk.Tk):
 
         if mode == 'changelog':
             self.log_selector_frame.grid_remove() # Skrytí selektoru logů
-            self.output_title_label.config(text="Změny (Changelog)")
+            self.output_title_label.config(text="Changelog")
             # Zobrazení aktuálního stavu changelogu
             self.log_message(self.remote_changelog, is_changelog=True, append=False) 
             # Přidání info o verzi, pokud už je známé
             if self.remote_version:
-                 self.log_message(f"\n--- Launcher info ---\nLokální verze: {self.local_version}, Nejnovější: {self.remote_version}", is_changelog=False, append=True)
+                self.log_message(f"\n--- Launcher info ---\nLocal version: {self.local_version}, Latest: {self.remote_version}", is_changelog=False, append=True)
             
         elif mode == 'gamelog':
             self.log_selector_frame.grid() # Zobrazení selektoru logů
-            self.output_title_label.config(text="Herní Logy (Přepínatelné)")
+            self.output_title_label.config(text="Game logs")
             
             log_files = self._get_available_log_files()
             self.log_combobox['values'] = log_files
@@ -405,9 +406,9 @@ class GameLauncher(tk.Tk):
                 # Načteme a zobrazíme tento log
                 self._load_selected_log(file_name=latest_file_name) 
             else:
-                self.log_combobox.set("Žádné logy nenalezeny")
-                self.log_message("V adresáři logů nejsou žádné soubory logů.", is_changelog=False, append=False)
-                
+                self.log_combobox.set("No logs found")
+                self.log_message("No log files found in the logs directory.", is_changelog=False, append=False)
+
         self.highlight_active_button()
 
 
@@ -433,22 +434,22 @@ class GameLauncher(tk.Tk):
         self.output_text.see(tk.END) 
         
     def update_button_state(self):
-        """Nastaví text a stav hlavního tlačítka na základě stavu aplikace."""
+        """Sets the text and state of the main button based on the application state."""
         self.is_installed = os.path.exists(EXPANDED_GAME_EXE_PATH)
-        self.version_label.config(text=f"Lokální: {self.local_version} | Nejnovější: {self.remote_version if self.remote_version else 'N/A'}")
+        self.version_label.config(text=f"Local: {self.local_version} | Latest: {self.remote_version if self.remote_version else 'N/A'}")
         
         if self.is_busy:
-            self.main_button.config(text="Probíhá operace...", state=tk.DISABLED)
+            self.main_button.config(text="Operation in progress...", state=tk.DISABLED)
             return
 
         is_force = self.force_install_var.get()
         
         if not self.is_installed:
-            self.main_button.config(text="INSTALOVAT HRU", state=tk.NORMAL)
+            self.main_button.config(text="INSTALL GAME", state=tk.NORMAL)
         elif not self.is_up_to_date or is_force:
-            self.main_button.config(text=f"AKTUALIZOVAT na {self.remote_version}", state=tk.NORMAL)
+            self.main_button.config(text=f"UPDATE to {self.remote_version}", state=tk.NORMAL)
         else:
-            self.main_button.config(text="HRÁT HRU", state=tk.NORMAL)
+            self.main_button.config(text="PLAY GAME", state=tk.NORMAL)
 
     # --- KONTROLA AKTUALIZACÍ ---
     
@@ -462,11 +463,11 @@ class GameLauncher(tk.Tk):
         remote_data = self._get_remote_data()
         
         if remote_data is None:
-            self.remote_version = "CHYBA"
+            self.remote_version = "ERROR"
         else:
             self.remote_version = remote_data.get('tag_name', DEFAULT_VERSION)
-            self.remote_changelog = remote_data.get('body', "Changelog nebyl poskytnut.")
-            
+            self.remote_changelog = remote_data.get('body', "Changelog not provided.")
+
             try:
                 self.is_up_to_date = LooseVersion(self.local_version) >= LooseVersion(self.remote_version)
             except Exception:
@@ -477,23 +478,23 @@ class GameLauncher(tk.Tk):
     def _finalize_update_check(self):
         self.is_busy = False
         
-        # Kontrola aktualizace se provádí pouze pro changelog mód, ne pro gamelog
+        # Update check is performed only for changelog mode, not for gamelog
         if self.log_mode == 'changelog':
-            self.output_title_label.config(text="Změny (Changelog)")
-            self.log_message(self.remote_changelog, is_changelog=True, append=False) 
+            self.output_title_label.config(text="Changelog")
+            self.log_message(self.remote_changelog, is_changelog=True, append=False)
             
             if self.is_installed:
                 if self.is_up_to_date:
-                    self.log_message(f"\n--- Launcher info ---\nHra je aktuální ({self.local_version}).", is_changelog=False, append=True)
+                    self.log_message(f"\n--- Launcher info ---\nGame is up to date ({self.local_version}).", is_changelog=False, append=True)
                 else:
-                    self.log_message(f"\n--- Launcher info ---\nNalezena nová verze: {self.remote_version}. Doporučujeme aktualizovat.", is_changelog=False, append=True)
+                    self.log_message(f"\n--- Launcher info ---\nNew version found: {self.remote_version}. Update recommended.", is_changelog=False, append=True)
             else:
-                self.log_message(f"\n--- Launcher info ---\nHra není nainstalovaná. Nejnovější verze: {self.remote_version}. Je nutné ji nainstalovat.", is_changelog=False, append=True)
+                self.log_message(f"\n--- Launcher info ---\nGame is not installed. Latest version: {self.remote_version}. Installation required.", is_changelog=False, append=True)
         
         self.update_button_state()
 
         
-    # --- POMOCNÉ FUNKCE PRO FILE/API ---
+        # --- HELPER FUNCTIONS FOR FILE/API ---
 
     def _load_local_config(self):
         config_data = {}
@@ -515,8 +516,8 @@ class GameLauncher(tk.Tk):
             with open(LOCAL_SETTINGS_PATH, 'w', encoding='utf-8') as f:
                 json.dump(config_data, f, indent=4)
         except IOError as e:
-            self.log_message(f"CHYBA ZÁPISU: Nepodařilo se zapsat novou verzi: {e}", is_changelog=False, append=True)
-            messagebox.showerror("Chyba", "Chyba zápisu do configu.")
+            self.log_message(f"WRITE ERROR: Failed to write new version: {e}", is_changelog=False, append=True)
+            messagebox.showerror("Error", "Failed to write to config.")
             
     def _create_config_dir(self):
         config_dir = os.path.dirname(LOCAL_SETTINGS_PATH)
@@ -524,8 +525,8 @@ class GameLauncher(tk.Tk):
             if config_dir:
                 os.makedirs(config_dir, exist_ok=True)
         except OSError as e:
-            self.log_message(f"CHYBA: Nepodařilo se vytvořit adresář: {config_dir}. {e}", is_changelog=False, append=True)
-            messagebox.showerror("Chyba", "Nelze vytvořit adresář pro config.")
+            self.log_message(f"ERROR: Failed to create directory: {config_dir}. {e}", is_changelog=False, append=True)
+            messagebox.showerror("Error", "Cannot create config directory.")
 
     def _get_remote_data(self):
         try:
@@ -543,14 +544,14 @@ class GameLauncher(tk.Tk):
                     break
             
             if not download_url:
-                self.log_message(f"❌ CHYBA: Na GitHubu nebyl nalezen asset s názvem '{DOWNLOADED_RAR_NAME}'.", is_changelog=False, append=True)
+                self.log_message(f"❌ ERROR: No asset named '{DOWNLOADED_RAR_NAME}' was found.", is_changelog=False, append=True)
                 return None
 
             self.download_url = download_url
             return remote_data
             
         except requests.exceptions.RequestException as e:
-            self.log_message(f"Chyba připojení k GitHub API: {e}", is_changelog=False, append=True)
+            self.log_message(f"Error connecting to API: {e}", is_changelog=False, append=True)
             return None
 
     # --- KLIKACÍ AKCE ---
@@ -566,35 +567,35 @@ class GameLauncher(tk.Tk):
             self.log_mode = 'gamelog' # Přepnutí na log mód
             self.log_selector_frame.grid_remove() # Skryjeme selektor, který není potřeba pro živý log instalace
             self.highlight_active_button()
-            self.output_title_label.config(text="Instalační Log")
-            self.log_message("--- START INSTALACE / AKTUALIZACE ---", is_changelog=False, append=False)
+            self.output_title_label.config(text="Installation Log")
+            self.log_message("--- START INSTALLATION / UPDATE ---", is_changelog=False, append=False)
             self.is_busy = True
             self.update_button_state()
             threading.Thread(target=self._run_installation, daemon=True).start()
         elif self.is_installed:
-            self.log_mode = 'gamelog' # Přepnutí na log mód
-            self.log_selector_frame.grid_remove() # Skryjeme selektor
+            self.log_mode = 'gamelog' # Switch to log mode
+            self.log_selector_frame.grid_remove() # Hide selector 
             self.highlight_active_button()
-            self.output_title_label.config(text="Výstup Hry")
-            self.log_message("--- SPUŠTĚNÍ HRY A ČEKÁNÍ NA VÝSTUP ---", is_changelog=False, append=False)
-            self.is_busy = True 
+            self.output_title_label.config(text="Game Output")
+            self.log_message("--- LAUNCHING GAME AND WAITING FOR OUTPUT ---", is_changelog=False, append=False)
+            self.is_busy = True
             self.update_button_state()
             threading.Thread(target=self._run_game_and_capture_output, daemon=True).start()
 
     def _run_installation(self):
         download_success = False
         
-        self.log_message(f"1/3 Stahování souboru '{DOWNLOADED_RAR_NAME}' z GitHubu...", is_changelog=False, append=True)
-        # Používáme speciální hlavičku pro stahování assetů
-        headers = {'Accept': 'application/octet-stream'} 
-        download_success = download_file(self.download_url, DOWNLOADED_RAR_NAME, headers) 
+        self.log_message(f"1/3 Downloading file '{DOWNLOADED_RAR_NAME}'", is_changelog=False, append=True)
+        # Using special header for downloading assets
+        headers = {'Accept': 'application/octet-stream'}
+        download_success = download_file(self.download_url, DOWNLOADED_RAR_NAME, headers)
         
         if download_success:
-            self.log_message(f"2/3 Extrakce pomocí '{RAR_EXE_PATH}' do cílového adresáře...", is_changelog=False, append=True)
+            self.log_message(f"2/3 Extracting using '{RAR_EXE_PATH}' to target directory...", is_changelog=False, append=True)
             try:
                 if os.path.exists(EXPANDED_GAME_DIR):
                     import shutil
-                    self.log_message(f"Mažu starý adresář: {EXPANDED_GAME_DIR}", is_changelog=False, append=True)
+                    self.log_message(f"Deleting old directory: {EXPANDED_GAME_DIR}", is_changelog=False, append=True)
                     shutil.rmtree(EXPANDED_GAME_DIR, ignore_errors=True)
                 os.makedirs(EXPANDED_GAME_DIR, exist_ok=True)
                 
@@ -602,33 +603,33 @@ class GameLauncher(tk.Tk):
                 result = subprocess.run(rar_command, capture_output=True, text=True, check=False) 
                 
                 if result.returncode != 0 and "All OK" not in result.stdout:
-                    self.log_message(f"❌ CHYBA EXTRACTU: Rar.exe selhalo. Kód: {result.returncode}. CHYBA: {result.stderr.strip()}", is_changelog=False, append=True)
+                    self.log_message(f"❌ EXTRACTION ERROR: Rar.exe failed. Code: {result.returncode}. ERROR: {result.stderr.strip()}", is_changelog=False, append=True)
                     download_success = False
                 else:
-                    self.log_message(result.stdout.strip() if result.stdout else "Rar.exe spuštěno (Bez viditelného výstupu).", is_changelog=False, append=True)
-                    self.log_message("Extrakce hotova.", is_changelog=False, append=True)
+                    self.log_message(result.stdout.strip() if result.stdout else "Rar.exe executed (no visible output).", is_changelog=False, append=True)
+                    self.log_message("Extraction completed.", is_changelog=False, append=True)
                 
                 if os.path.exists(DOWNLOADED_RAR_NAME):
                     os.remove(DOWNLOADED_RAR_NAME)
                 
             except FileNotFoundError:
-                self.log_message(f"❌ CHYBA: Soubor RAR.EXE nebyl nalezen na cestě: {RAR_EXE_PATH}. NELZE EXTRAHOVAT!", is_changelog=False, append=True)
+                self.log_message(f"❌ ERROR: RAR.EXE not found at path: {RAR_EXE_PATH}. CANNOT EXTRACT!", is_changelog=False, append=True)
                 download_success = False
             except Exception as e:
-                self.log_message(f"❌ NEOČEKÁVANÁ CHYBA PŘI MANIPULACI SE SOUBORY: {e}", is_changelog=False, append=True)
+                self.log_message(f"❌ UNEXPECTED ERROR WHILE HANDLING FILES: {e}", is_changelog=False, append=True)
                 download_success = False
 
         if download_success:
-            self.log_message(f"3/3 Aktualizace lokální verze na {self.remote_version}...", is_changelog=False, append=True)
+            self.log_message(f"3/3 Updating local version to {self.remote_version}...", is_changelog=False, append=True)
             _, config_data = self._load_local_config()
             self._save_local_config(self.remote_version, config_data) 
             
             self.local_version = self.remote_version
             self.is_installed = True
             self.is_up_to_date = True
-            self.log_message("✅ AKTUALIZACE DOKONČENA USPEŠNĚ!", is_changelog=False, append=True)
+            self.log_message("✅ UPDATE COMPLETED SUCCESSFULLY!", is_changelog=False, append=True)
         else:
-            self.log_message("❌ Instalace / Aktualizace selhala.", is_changelog=False, append=True)
+            self.log_message("❌ Installation / Update failed.", is_changelog=False, append=True)
             
         self.after(0, self._finalize_installation)
 
@@ -636,16 +637,16 @@ class GameLauncher(tk.Tk):
         self.is_busy = False
         self.force_install_var.set(False) 
         self.update_button_state()
-        # Vracíme se na changelog
+        # Return to changelog
         self.switch_log_mode('changelog') 
         
     def _run_game_and_capture_output(self):
-        self.log_message(f"Spouštím hru {GAME_EXE_NAME}...", is_changelog=False, append=True)
-        self.log_message("POZOR: Launcher je zablokován, dokud se hra neukončí.", is_changelog=False, append=True)
+        self.log_message(f"Starting game {GAME_EXE_NAME}...", is_changelog=False, append=True)
+        self.log_message("WARNING: Launcher will be blocked until the game exits.", is_changelog=False, append=True)
         self.log_message("-" * 30, is_changelog=False, append=True)
         
         try:
-            # Spuštění hry s přesměrováním výstupu (Godot Console Output)
+            # Launch the game with redirected output (capture Godot console output)
             process = subprocess.Popen([EXPANDED_GAME_EXE_PATH], 
                                        cwd=EXPANDED_GAME_DIR, 
                                        stdout=subprocess.PIPE, 
@@ -653,32 +654,32 @@ class GameLauncher(tk.Tk):
                                        universal_newlines=True 
                                       )
             
-            # Asynchronní čtení výstupu a zobrazení v GUI
+            # Asynchronously read output and display in GUI
             for line in process.stdout:
                 self.after(0, lambda msg=line.strip(): self.log_message(msg, is_changelog=False, append=True))
             
-            process.wait() # Čekání na ukončení hry
+            process.wait() # Wait for the game to exit
             
             self.log_message("-" * 30, is_changelog=False, append=True)
-            self.log_message(f"Hra skončila s kódem: {process.returncode}", is_changelog=False, append=True)
+            self.log_message(f"Game exited with code: {process.returncode}", is_changelog=False, append=True)
             
         except FileNotFoundError:
-            self.log_message(f"❌ CHYBA: Spustitelný soubor nenalezen na cestě: {EXPANDED_GAME_EXE_PATH}", is_changelog=False, append=True)
-            messagebox.showerror("Chyba spuštění", "Spustitelný soubor hry nebyl nalezen.")
+            self.log_message(f"❌ ERROR: Executable not found at path: {EXPANDED_GAME_EXE_PATH}", is_changelog=False, append=True)
+            messagebox.showerror("Launch error", "Game executable was not found.")
         except Exception as e:
-            self.log_message(f"❌ NEOČEKÁVANÁ CHYBA PŘI SPUŠTĚNÍ HRY: {e}", is_changelog=False, append=True)
+            self.log_message(f"❌ UNEXPECTED ERROR WHILE LAUNCHING GAME: {e}", is_changelog=False, append=True)
 
         self.after(0, self._finalize_game_run)
 
     def _finalize_game_run(self):
         self.is_busy = False
         self.update_button_state()
-        # Vracíme se na changelog
+        # Return to changelog
         self.switch_log_mode('changelog') 
 
-# --- Funkce pro stažení ---
+# --- Download function ---
 def download_file(url, save_path, headers):
-    """Stáhne soubor z API endpointu s požadovanými hlavičkami (např. application/octet-stream)."""
+    """Downloads a file from an API endpoint using the provided headers (e.g., application/octet-stream)."""
     try:
         req = requests.get(url, headers=headers, stream=True) 
         req.raise_for_status() 
@@ -690,18 +691,18 @@ def download_file(url, save_path, headers):
         return True
         
     except requests.exceptions.RequestException as e:
-        print(f"Chyba stahování: {e}") 
+        print(f"Error downloading file: {e}")
         return False
 
-# --- Spuštění Aplikace ---
+# --- Launch Application ---
 if __name__ == "__main__":
     try:
-        # Kontrola závislostí
+        # Check dependencies
         import requests
-        from distutils.version import LooseVersion # type: ignore
+        from distutils.version import LooseVersion # pyright: ignore
         import markdown 
     except ImportError as e:
-        print(f"Chybí požadovaný balíček: {e.name}. Nainstalujte jej pomocí 'pip install {e.name}'.")
+        print(f"Missing required package: {e.name}. Install it using 'pip install {e.name}'.")
         sys.exit(1)
     os.startfile("icon_taskbar.exe")
     app = GameLauncher()
