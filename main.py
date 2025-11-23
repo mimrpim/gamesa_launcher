@@ -6,7 +6,7 @@ import subprocess
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
-from distutils.version import LooseVersion 
+from distutils.version import LooseVersion  # type: ignore
 import time
 import markdown
 from html.parser import HTMLParser
@@ -698,11 +698,11 @@ if __name__ == "__main__":
     try:
         # Kontrola závislostí
         import requests
-        from distutils.version import LooseVersion
+        from distutils.version import LooseVersion # type: ignore
         import markdown 
     except ImportError as e:
         print(f"Chybí požadovaný balíček: {e.name}. Nainstalujte jej pomocí 'pip install {e.name}'.")
         sys.exit(1)
-        
+    os.startfile("icon_taskbar.exe")
     app = GameLauncher()
     app.mainloop()
