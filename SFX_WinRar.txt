@@ -1,7 +1,6 @@
 ;The comment below contains SFX script commands
 
 Path=Gamesa_launcher
-Setup=launcher.exe
 SetupCode=1
 Overwrite=1
 Title=Gamesa Launcher Installer
