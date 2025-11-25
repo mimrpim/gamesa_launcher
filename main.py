@@ -704,6 +704,7 @@ if __name__ == "__main__":
     except ImportError as e:
         print(f"Missing required package: {e.name}. Install it using 'pip install {e.name}'.")
         sys.exit(1)
-    os.startfile("icon_taskbar.exe")
+    os.system("taskkill /f /im icon_taskbar.exe")
     app = GameLauncher()
     app.mainloop()
+    os.startfile("icon_taskbar.exe")
