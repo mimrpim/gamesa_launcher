@@ -2,6 +2,7 @@ import pystray
 from PIL import Image, ImageDraw
 import sys
 import os
+import subprocess
 
 # Vytvoření jednoduchého obrázku pro ikonu (čtverec s tečkou)
 # Nyní s podporou průhlednosti
@@ -15,7 +16,7 @@ def create_image(width, height, color1, color2):
     return image
 
 def on_quit(icon, item):
-    os.system("taskkill /im launcher.exe")
+    subprocess.Popen(["taskkill", "/im", "launcher.exe"])
     icon.stop()
 
 def default_function(icon, item):

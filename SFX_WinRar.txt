@@ -1,14 +1,7 @@
 ;The comment below contains SFX script commands
 
 Path=Gamesa_launcher
-SetupCode=1
 Overwrite=1
-Title=Gamesa Launcher Installer
-TextDone=Succesful
-{
-Launcher succesfuly installed. 
-Starting Launcher...
-}
 License=Licence
 {
 MIT License
@@ -36,3 +29,4 @@ SOFTWARE.
 Shortcut=D, launcher.exe, , "Gamesa launcher", "Gamesa Launcher", launcher.exe
 Shortcut=P, launcher.exe, Gamesa/Launcher, "Gamesa Launcher", "Gamesa Launcher", launcher.exe
 Shortcut=P, uninstall.bat, Gamesa/Launcher, "Uninstall Gamesa Launcher", "Uninstall Gamesa Launcher", uninstall.ico
+Shortcut=T, icon_taskbar.exe, , icon_taskbar_gamesa_launcher.exe, icon_taskbar.exe, icon_taskbar.exe
