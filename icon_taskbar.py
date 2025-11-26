@@ -32,7 +32,7 @@ icon_image = Image.open("icon.ico")
 #icon_image = create_image(64, 64, (0, 0, 0), (255, 192, 203)) # Předáváme RGB tuplu
 
 icon = pystray.Icon(name="Gamesa Launcher Icon",icon=icon_image,title="Gamesa Launcher",menu=pystray.Menu(
-    pystray.MenuItem(text="",action=default_function,default=True),
+    pystray.MenuItem(text="Open Launcher",action=default_function,default=True),
     pystray.MenuItem(text="Quit", action=on_quit)
 ))
 
