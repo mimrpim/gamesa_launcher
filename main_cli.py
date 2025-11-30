@@ -8,8 +8,8 @@ import argparse
 from distutils.version import LooseVersion  # type: ignore
 import time
 
-# --- 1. KONFIGURACE (Převzato z původního main.py) ---
-# Cesty k souborům a adresářům jsou v EXPANDOVANÉ podobě pro snadné použití.
+# --- 1. CONFIGURATION (Taken from original main.py) ---
+# File and directory paths are in EXPANDED form for easy use.
 UNEXPANDED_CONFIG_PATH = "%appdata%/Godot/app_userdata/Gamesa/config_updater.json"
 GAME_DIR_PATH = "%appdata%/Godot/app_userdata/Gamesa/game_files"
 GAME_EXE_NAME = "gamesa.exe"
@@ -28,7 +28,7 @@ EXPANDED_GAME_EXE_PATH = os.path.join(EXPANDED_GAME_DIR, GAME_EXE_NAME)
 # --- 2. KONZOLOVÉ FUNKCE ---
 
 def cprint(message, level="INFO"):
-    """Vylepšený konzolový výpis s časovou značkou a barevným kódem."""
+    """Enhanced console output with timestamp and color coding."""
     timestamp = time.strftime("[%H:%M:%S]")
     color_code = {
         "INFO": "\033[94m",    # Modrá
@@ -37,13 +37,13 @@ def cprint(message, level="INFO"):
         "WARN": "\033[93m"     # Žlutá
     }.get(level, "\033[0m")
     
-    # \033[0m resetuje barvu
+    # \033[0m resets the color
     print(f"{timestamp} {color_code}[{level}]\033[0m {message}")
 
-# --- 3. HELPER FUNKCE (Převzato/upraveno z main.py) ---
+# --- 3. HELPER FUNCTIONS (Taken/modified from main.py) ---
 
 def _load_local_config():
-    """Načte lokální verzi hry z configu."""
+    """Loads the local game version from config."""
     config_data = {}
     version = DEFAULT_VERSION
     try:
@@ -51,12 +51,12 @@ def _load_local_config():
             config_data = json.load(f)
         version = config_data.get(VERSION_KEY, DEFAULT_VERSION)
     except (FileNotFoundError, json.JSONDecodeError):
-        # Vrací defaultní verzi a prázdná data, pokud soubor neexistuje nebo je poškozený
+        # Returns default version and empty data if file doesn't exist or is corrupted
         pass 
     return version, config_data
 
 def _save_local_config(version, config_data):
-    """Uloží lokální verzi do configu."""
+    """Saves the local version to config."""
     config_data[VERSION_KEY] = version
     config_dir = os.path.dirname(LOCAL_SETTINGS_PATH)
     try:
@@ -66,12 +66,12 @@ def _save_local_config(version, config_data):
             json.dump(config_data, f, indent=4)
         return True
     except IOError as e:
-        cprint(f"Chyba při zápisu configu: {e}", "ERROR")
+        cprint(f"Error writing config: {e}", "ERROR")
         return False
 
 def _get_remote_data():
-    """Získá data o poslední verzi z GitHub API."""
-    cprint(f"Kontrola aktualizací na: {GITHUB_API_URL}", "INFO")
+    """Fetches data about the latest version from GitHub API."""
+    cprint(f"Checking for updates at: {GITHUB_API_URL}", "INFO")
     try:
         response = requests.get(GITHUB_API_URL, headers=GITHUB_HEADERS, timeout=10)
         response.raise_for_status() 
@@ -85,243 +85,243 @@ def _get_remote_data():
                 break
         
         if not download_url:
-            cprint(f"Chyba: Asset '{DOWNLOADED_RAR_NAME}' nebyl na GitHubu nalezen. Nelze aktualizovat.", "ERROR")
+            cprint(f"Error: Asset '{DOWNLOADED_RAR_NAME}' not found on GitHub. Cannot update.", "ERROR")
             return None, None, None
 
         remote_version = remote_data.get('tag_name', DEFAULT_VERSION)
         return remote_version, download_url, remote_data.get('body', "Changelog není k dispozici.")
         
     except requests.exceptions.RequestException as e:
-        cprint(f"Chyba při připojování k GitHub API (bez internetu?): {e}", "ERROR")
+        cprint(f"Error connecting to GitHub API (no internet?): {e}", "ERROR")
         return None, None, None
 
 def download_file(url, save_path):
-    """Stáhne soubor z GitHubu."""
-    # Používáme 'application/octet-stream' pro stažení assetu z GitHubu
+    """Downloads a file from GitHub."""
+    # Use 'application/octet-stream' for downloading asset from GitHub
     headers = {'Accept': 'application/octet-stream'}
-    cprint(f"Stahování souboru z URL: {url}", "INFO")
+    cprint(f"Downloading file from URL: {url}", "INFO")
     try:
         req = requests.get(url, headers=headers, stream=True) 
         req.raise_for_status() 
 
         with open(save_path, 'wb') as file:
-            # Iterace přes chunk velikosti 8KB pro velké soubory
+            # Iterate through 8KB chunks for large files
             for chunk in req.iter_content(chunk_size=8192):
                 if chunk:
                     file.write(chunk)
         return True
         
     except requests.exceptions.RequestException as e:
-        cprint(f"Chyba při stahování souboru: {e}", "ERROR")
+        cprint(f"Error downloading file: {e}", "ERROR")
         return False
 
 def run_installation(remote_version, download_url):
-    """Provede stažení a extrakci souborů."""
-    cprint("--- START INSTALACE / UPDATE ---", "INFO")
+    """Performs download and extraction of files."""
+    cprint("--- START INSTALLATION / UPDATE ---", "INFO")
     
-    # 1. Stažení
+    # 1. Download
     if not download_file(download_url, DOWNLOADED_RAR_NAME):
-        cprint("Instalace selhala v kroku stahování.", "ERROR")
+        cprint("Installation failed at download step.", "ERROR")
         return False
         
-    # 2. Extrakce
-    cprint(f"Extrakce souboru '{DOWNLOADED_RAR_NAME}' do adresáře: {EXPANDED_GAME_DIR}", "INFO")
+    # 2. Extraction
+    cprint(f"Extracting file '{DOWNLOADED_RAR_NAME}' to directory: {EXPANDED_GAME_DIR}", "INFO")
     try:
-        # Bezpečné smazání starého adresáře
+        # Safe deletion of old directory
         if os.path.exists(EXPANDED_GAME_DIR):
-            cprint(f"Mazání starého adresáře: {EXPANDED_GAME_DIR}", "WARN")
+            cprint(f"Deleting old directory: {EXPANDED_GAME_DIR}", "WARN")
             shutil.rmtree(EXPANDED_GAME_DIR, ignore_errors=True)
         os.makedirs(EXPANDED_GAME_DIR, exist_ok=True)
         
         if not os.path.exists(RAR_EXE_PATH):
-            cprint(f"Chyba: Rar.exe nebyl nalezen na cestě: {RAR_EXE_PATH}. NELZE EXTRAHOVAT.", "ERROR")
-            cprint("Instalace selhala - chybí Rar.exe.", "ERROR")
+            cprint(f"Error: Rar.exe not found at path: {RAR_EXE_PATH}. CANNOT EXTRACT.", "ERROR")
+            cprint("Installation failed - Rar.exe missing.", "ERROR")
             return False
 
-        # Spuštění Rar.exe pro extrakci
+        # Run Rar.exe for extraction
         rar_command = [RAR_EXE_PATH, 'x', '-y', DOWNLOADED_RAR_NAME, EXPANDED_GAME_DIR]
-        # Potřebujeme zachytit výstup Rar.exe, aby nedošlo k problémům s konzolí
+        # Need to capture Rar.exe output to avoid console issues
         result = subprocess.run(rar_command, capture_output=True, text=True, check=False) 
         
         if result.returncode != 0 and "All OK" not in result.stdout:
-            cprint(f"Chyba při extrakci (Rar.exe Code: {result.returncode}).", "ERROR")
+            cprint(f"Error during extraction (Rar.exe Code: {result.returncode}).", "ERROR")
             cprint(f"ERROR: {result.stderr.strip()}", "ERROR")
             return False
         else:
-            cprint("Extrakce dokončena. Výstup Rar.exe (pokud je):", "INFO")
-            # Tiskne jen ty nejdůležitější řádky (typicky se zde zobrazí "All OK")
+            cprint("Extraction completed. Rar.exe output (if any):", "INFO")
+            # Prints only the most important lines (typically "All OK" appears here)
             print(result.stdout.strip()) 
         
-        # Smazání staženého RAR souboru
+        # Delete downloaded RAR file
         if os.path.exists(DOWNLOADED_RAR_NAME):
             os.remove(DOWNLOADED_RAR_NAME)
             
     except Exception as e:
-        cprint(f"Neočekávaná chyba při extrakci: {e}", "ERROR")
+        cprint(f"Unexpected error during extraction: {e}", "ERROR")
         return False
 
-    # 3. Uložení verze
-    cprint(f"Aktualizace lokální verze na {remote_version}", "INFO")
+    # 3. Version save
+    cprint(f"Updating local version to {remote_version}", "INFO")
     _, config_data = _load_local_config()
     if not _save_local_config(remote_version, config_data):
-         cprint("Aktualizace verze v configu selhala.", "ERROR")
+         cprint("Version update in config failed.", "ERROR")
          return False
 
-    cprint("UPDATE DOKONČEN ÚSPĚŠNĚ!", "SUCCESS")
+    cprint("UPDATE COMPLETED SUCCESSFULLY!", "SUCCESS")
     return True
 
 def run_game():
-    """Spustí hru a čeká na její dokončení."""
-    cprint(f"Spouštění hry: {EXPANDED_GAME_EXE_PATH}", "INFO")
+    """Runs the game and waits for it to complete."""
+    cprint(f"Running game: {EXPANDED_GAME_EXE_PATH}", "INFO")
     
     if not os.path.exists(EXPANDED_GAME_EXE_PATH):
-        cprint(f"Chyba: Spustitelný soubor hry nebyl nalezen: {EXPANDED_GAME_EXE_PATH}", "ERROR")
+        cprint(f"Error: Game executable not found: {EXPANDED_GAME_EXE_PATH}", "ERROR")
         return False
 
     try:
-        # Spuštění hry s přesměrováním výstupu do aktuální konzole
+        # Run game with output redirected to current console
         cprint("---------------------------------------", "INFO")
-        cprint("--- START VÝSTUPU HRY (Godot Console) ---", "INFO")
+        cprint("--- START GAME OUTPUT (Godot Console) ---", "INFO")
         cprint("---------------------------------------", "INFO")
         
-        # Spustí hru a nechá ji bežet. Výstup bude v aktuální konzoli.
+        # Runs the game and lets it run. Output will be in current console.
         process = subprocess.Popen([EXPANDED_GAME_EXE_PATH], 
                                    cwd=EXPANDED_GAME_DIR, 
                                    stdout=sys.stdout, 
                                    stderr=sys.stderr  
                                   )
         
-        process.wait() # Čekání, dokud hra neskončí
+        process.wait() # Wait until game finishes
         
         cprint("---------------------------------------", "INFO")
-        cprint("--- KONEC VÝSTUPU HRY ---", "INFO")
+        cprint("--- END GAME OUTPUT ---", "INFO")
         cprint("---------------------------------------", "INFO")
-        cprint(f"Hra ukončena s kódem: {process.returncode}", "SUCCESS" if process.returncode == 0 else "WARN")
+        cprint(f"Game ended with code: {process.returncode}", "SUCCESS" if process.returncode == 0 else "WARN")
         return True
         
     except Exception as e:
-        cprint(f"Neočekávaná chyba při spouštění hry: {e}", "ERROR")
+        cprint(f"Unexpected error while running game: {e}", "ERROR")
         return False
 
-# --- 4. HLAVNÍ LOGIKA ---
+# --- 4. MAIN LOGIC ---
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Gamesa Console Launcher a Updater. Defaultně kontroluje update a spouští hru."
+        description="Gamesa Console Launcher and Updater. By default checks for updates and runs the game."
     )
     
     # Definice argumentů
     parser.add_argument(
         '--forceupdate',
         action='store_true',
-        help='Vynutí aktualizaci (stažení a instalaci), i když se zdá být aktuální. Poté spustí hru.'
+        help='Forces update (download and installation), even if it appears to be up-to-date. Then runs the game.'
     )
     parser.add_argument(
         '--update_only',
         action='store_true',
-        help='Pouze zkontroluje aktualizace a provede update/instalaci. Hru NESPÚŠTÍ.'
+        help='Only checks for updates and performs update/installation. Does NOT run the game.'
     )
     
     args = parser.parse_args()
 
-    # --- Krok 1: Získání verzí a dat ---
+    # --- Step 1: Get versions and data ---
     local_version, _ = _load_local_config()
     remote_version, download_url, changelog = _get_remote_data()
     
     cprint("-" * 50, "INFO")
     
-    # Kontrola, zda se podařilo získat data z GitHubu
+    # Check if we could get data from GitHub
     if remote_version is None or download_url is None:
-        cprint("Nelze získat informace o vzdálené verzi (Chyba API/sítě).", "ERROR")
-        cprint("Pokračuji pouze se spuštěním lokální hry (pokud existuje).", "WARN")
+        cprint("Cannot get remote version information (API/Network Error).", "ERROR")
+        cprint("Continuing with only launching local game (if it exists).", "WARN")
         
         if not args.update_only and os.path.exists(EXPANDED_GAME_EXE_PATH):
-            cprint("Spouštím lokální hru...", "INFO")
+            cprint("Running local game...", "INFO")
             run_game()
         else:
-            cprint("Hra nespouštěna (Update je požadován nebo lokální exe neexistuje).", "INFO")
+            cprint("Game not launched (Update required or local exe doesn't exist).", "INFO")
         
-        sys.exit(1) # Konec s chybovým kódem, protože update selhal
+        sys.exit(1) # Exit with error code because update failed
 
-    # --- Krok 2: Porovnání verzí ---
+    # --- Step 2: Version comparison ---
     
     try:
-        # Porovnání LooseVersion je bezpečnější pro schémata jako v0.9.1
+        # LooseVersion comparison is safer for schemes like v0.9.1
         needs_update = LooseVersion(local_version) < LooseVersion(remote_version)
     except Exception:
         needs_update = local_version != remote_version
         
-    cprint(f"Lokální verze: {local_version} | Nejnovější verze: {remote_version}", "INFO")
+    cprint(f"Local version: {local_version} | Latest version: {remote_version}", "INFO")
     
-    # Je hra nainstalovaná?
+    # Is the game installed?
     is_installed = os.path.exists(EXPANDED_GAME_EXE_PATH)
     
-    # Musíme provést instalaci/update?
+    # Do we need to perform installation/update?
     should_install = needs_update or args.forceupdate or not is_installed
 
     if should_install:
         if args.forceupdate:
-            cprint("VYNUCENÝ UPDATE požadován (--forceupdate).", "WARN")
+            cprint("FORCED UPDATE requested (--forceupdate).", "WARN")
         elif not is_installed:
-            cprint("Hra není nainstalována. Nutná instalace.", "WARN")
+            cprint("Game is not installed. Installation required.", "WARN")
         else:
-            cprint("Nalezena nová verze! Je nutný update.", "WARN")
+            cprint("New version found! Update is required.", "WARN")
 
-        # Volitelný tisk Changelogu
+        # Optional changelog print
         cprint("\n--- CHANGELOG ---", "INFO")
         print(changelog)
         cprint("-----------------", "INFO")
         
     elif not should_install:
-        cprint("Hra je aktuální, update není nutný.", "SUCCESS")
+        cprint("Game is up-to-date, no update needed.", "SUCCESS")
 
 
-    # --- Krok 3: Zpracování Argumentů a Akce ---
+    # --- Step 3: Process Arguments and Actions ---
 
-    # 1. Režim --update_only (Pouze kontrola a instalace/update)
+    # 1. Mode --update_only (Only check and install/update)
     if args.update_only:
-        cprint("\nRežim: POUZE UPDATE (--update_only)", "INFO")
+        cprint("\nMode: UPDATE ONLY (--update_only)", "INFO")
         if should_install:
             if run_installation(remote_version, download_url):
-                cprint("Update/Instalace dokončena. Hra NENÍ spuštěna.", "SUCCESS")
+                cprint("Update/Installation completed. Game NOT launched.", "SUCCESS")
                 sys.exit(0)
             else:
-                cprint("Update/Instalace selhala.", "ERROR")
+                cprint("Update/Installation failed.", "ERROR")
                 sys.exit(1)
         else:
-            cprint("Update není nutný. Hra NENÍ spuštěna.", "SUCCESS")
+            cprint("Update not needed. Game NOT launched.", "SUCCESS")
             sys.exit(0)
 
-    # 2. Režim --forceupdate A Defaultní režim (Vždy spustit hru)
-    cprint("\nRežim: Update A SPUŠTĚNÍ", "INFO")
+    # 2. Mode --forceupdate AND Default mode (Always run game)
+    cprint("\nMode: Update AND LAUNCH", "INFO")
     
     if should_install:
-        cprint("Spouštím instalaci/update před spuštěním hry.", "INFO")
+        cprint("Running installation/update before launching game.", "INFO")
         if not run_installation(remote_version, download_url):
-            cprint("Update selhal. Pokouším se spustit starou verzi, pokud existuje.", "ERROR")
-            # Pokud update selhal, pokusíme se spustit starou verzi
+            cprint("Update failed. Attempting to run old version if it exists.", "ERROR")
+            # If update failed, try to run the old version
             if os.path.exists(EXPANDED_GAME_EXE_PATH):
-                cprint("Spouštím starou verzi...", "WARN")
+                cprint("Running old version...", "WARN")
                 run_game()
             else:
-                cprint("Spuštění přeskočeno - hra není nainstalována.", "ERROR")
-                sys.exit(1) # Konec s chybou
+                cprint("Launch skipped - game is not installed.", "ERROR")
+                sys.exit(1) # Exit with error
         else:
-            # Update proběhl, spouštíme novou verzi
+            # Update completed, run new version
             run_game()
     else:
-        # Update není nutný, spouštíme hru
+        # Update not needed, run game
         run_game()
         
-    cprint("Skript dokončil běh.", "INFO")
+    cprint("Script finished running.", "INFO")
     sys.exit(0)
 
 
 if __name__ == "__main__":
-    # Nastavení pro podporu barev v konzoli na Windows 10/11
+    # Setup for color support in console on Windows 10/11
     if sys.platform == "win32":
         try:
-            # Povolení ANSI escape sekvencí
+            # Enable ANSI escape sequences
             import ctypes
             kernel32 = ctypes.windll.kernel32
             kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7) 
@@ -329,11 +329,10 @@ if __name__ == "__main__":
             pass
             
     try:
-        # Rychlá kontrola závislostí
+        # Quick dependency check
         import requests 
         from distutils.version import LooseVersion # pyright: ignore
     except ImportError as e:
-        print(f"Chybí požadovaný balíček: {e.name}. Nainstalujte jej pomocí 'pip install requests setuptools'.")
         sys.exit(1)
         
     # Spuštění hlavní funkce
