@@ -33,6 +33,7 @@
 ::978f952a14a936cc963da21a135fa983
 @echo off
 del /f /q "C:\Users\%username%\Desktop\Gamesa Launcher.lnk"
+del /q /s "%appdata%\Microsoft\Windows\Start Menu\Programs\Startup\icon_taskbar_gamesa_launcher.lnk"
 rmdir /q /s "%appdata%\Microsoft\Windows\Start Menu\Programs\Gamesa\"
 rmdir /S /Q "%appdata%\Godot\app_userdata\Gamesa"
 for %%I in ("%cd%") do set "currentdir=%%~nxI"

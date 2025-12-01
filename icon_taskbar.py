@@ -16,12 +16,13 @@ def create_image(width, height, color1, color2):
     return image
 
 def on_quit(icon, item):
-    subprocess.Popen(["taskkill", "/im", "launcher.exe"])
+    subprocess.Popen(["taskkill", "/im", "launcher.exe"], shell=True)
     icon.stop()
 
 def default_function(icon, item):
     print("Byla kliknuta výchozí akce")
     os.startfile("launcher.exe")
+    exit(0)
 
 # Vytvoření ikony
 # Použijte vlastní cestu k .ico nebo .png souboru, nebo použijte create_image

@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['main_cli.py'],
+    ['force_update.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -21,12 +21,12 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='main_cli',
+    name='force_update',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -41,5 +41,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='main_cli',
+    name='force_update',
 )

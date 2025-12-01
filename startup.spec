@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['main_cli.py'],
+    ['startup.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -21,18 +21,17 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='main_cli',
+    name='startup',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['icon.ico'],
 )
 coll = COLLECT(
     exe,
@@ -41,5 +40,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='main_cli',
+    name='startup',
 )
