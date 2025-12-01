@@ -39,3 +39,4 @@ rmdir /S /Q "%appdata%\Godot\app_userdata\Gamesa"
 for %%I in ("%cd%") do set "currentdir=%%~nxI"
 cd ..
 cmd /C rmdir /s /q "%currentdir%\"
+exit /b 0
