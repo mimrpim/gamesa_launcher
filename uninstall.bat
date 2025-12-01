@@ -32,6 +32,8 @@
 ::
 ::978f952a14a936cc963da21a135fa983
 @echo off
+taskkill /f /im icon_taskbar.exe
+taskkill /f /im launcher.exe
 del /f /q "C:\Users\%username%\Desktop\Gamesa Launcher.lnk"
 del /q /s "%appdata%\Microsoft\Windows\Start Menu\Programs\Startup\icon_taskbar_gamesa_launcher.lnk"
 rmdir /q /s "%appdata%\Microsoft\Windows\Start Menu\Programs\Gamesa\"
